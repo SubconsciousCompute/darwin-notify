@@ -1,5 +1,3 @@
-#![feature(doc_cfg)]
-
 //! Darwin Notify API bindings for Rust.
 //!
 //! Find the API docs on [official Apple docs](https://developer.apple.com/documentation/darwinnotify)
@@ -59,9 +57,13 @@ impl NotifyError {
             1000000 => Self::Failed,
 
             code => {
+                #[cfg(feature = "tracing")]
                 tracing::error!(
-                "This is a bug, please report on github. {code} should've never been the status."
+                "darwin-notify: This is a bug, please report on github. {code} should've never been the status."
             );
+
+                // just for the lints
+                _ = code;
 
                 NotifyError::Unknown
             }
