@@ -74,18 +74,8 @@ impl std::error::Error for NotifyError {}
 impl std::fmt::Display for NotifyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::InvalidName => f.write_str("Darwin Notify Error: Invalid Name"),
-            Self::InvalidToken => f.write_str("Darwin Notify Error: Invalid Token"),
-            Self::InvalidPort => f.write_str("Darwin Notify Error: Invalid Port"),
-            Self::InvalidFile => f.write_str("Darwin Notify Error: Invalid File"),
-            Self::InvalidSignal => f.write_str("Darwin Notify Error: Invalid Signal"),
-            Self::InvalidRequest => f.write_str("Darwin Notify Error: Invalid Request"),
-            Self::NotAuthorized => f.write_str("Darwin Notify Error: Not Authorized"),
-            Self::OptDisabled => f.write_str("Darwin Notify Error: Opt Disabled"),
-            Self::ServerNotFound => f.write_str("Darwin Notify Error: Server Not Found"),
-            Self::NullInput=> f.write_str("Darwin Notify Error: Null Input"),
-            Self::Failed => f.write_str("Darwin Notify Error: Failed"),
             Self::Unknown => f.write_str("Darwin Notify Error: Unknown error, this is most certainly a bug. Please report issue on github."),
+            err @ _ => f.write_str(&format!("Darwin Notify Error: {err:?}"))
         }
     }
 }
