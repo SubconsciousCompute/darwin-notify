@@ -12,7 +12,7 @@ use block::ConcreteBlock;
 #[cfg(not(feature = "sys"))]
 mod sys;
 
-#[cfg(any(feature = "sys"))]
+#[cfg(feature = "sys")]
 /// Contains raw C bindings to Darwin Notify API.
 ///
 /// This module is only availabe when `sys` feature is enabled.
@@ -58,7 +58,7 @@ impl NotifyError {
             10 => Self::NullInput,
             1000000 => Self::Failed,
 
-            code @ _ => {
+            code => {
                 tracing::error!(
                 "This is a bug, please report on github. {code} should've never been the status."
             );
@@ -75,7 +75,7 @@ impl std::fmt::Display for NotifyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Unknown => f.write_str("Darwin Notify Error: Unknown error, this is most certainly a bug. Please report issue on github."),
-            err @ _ => f.write_str(&format!("Darwin Notify Error: {err:?}"))
+            err => f.write_str(&format!("Darwin Notify Error: {err:?}"))
         }
     }
 }
@@ -86,7 +86,7 @@ macro_rules! ns_result {
     ($e: expr) => {
         match $e {
             0 => Ok(()),
-            code @ _ => Err(NotifyError::from_u32(code)),
+            code => Err(NotifyError::from_u32(code)),
         }
     };
 }
@@ -95,9 +95,7 @@ macro_rules! ns_result {
 ///
 /// # Example
 /// ```
-/// fn main() {
-///     darwin_notify::notify("tech.subcom.darwin-notify")
-/// }
+/// darwin_notify::notify_post("tech.subcom.darwin-notify").unwrap()
 /// ```
 pub fn notify_post(name: &str) -> NResult<()> {
     let name = CString::new(name).unwrap();
@@ -112,9 +110,7 @@ pub fn notify_post(name: &str) -> NResult<()> {
 ///
 /// # Example
 /// ```
-/// fn main() {
-///     darwin_notify::notify_register("tech.subcom.darwin-notify", |token| { println!("Got a notification: {token}") })
-/// }
+/// darwin_notify::notify_register("tech.subcom.darwin-notify", |token| { println!("Got a notification: {token}") }).unwrap();
 /// ```
 pub fn notify_register<F>(name: &str, cb: F) -> NResult<i32>
 where
@@ -125,7 +121,7 @@ where
     let mut token = 0;
     let dque = unsafe { sys::dispatch_get_current_queue() };
 
-    let block = ConcreteBlock::new(move |token: i32| cb(token)).copy();
+    let block = ConcreteBlock::new(cb).copy();
 
     match unsafe {
         sys::notify_register_dispatch(
@@ -136,7 +132,7 @@ where
         )
     } {
         0 => Ok(token),
-        code @ _ => Err(NotifyError::from_u32(code)),
+        code => Err(NotifyError::from_u32(code)),
     }
 }
 
@@ -156,7 +152,7 @@ pub fn notify_get_state(token: std::ffi::c_int) -> NResult<u64> {
 
     match unsafe { sys::notify_get_state(token, &mut state as _) } {
         0 => Ok(state),
-        code @ _ => Err(NotifyError::from_u32(code)),
+        code => Err(NotifyError::from_u32(code)),
     }
 }
 
@@ -166,7 +162,7 @@ pub fn notify_check(token: std::ffi::c_int) -> NResult<bool> {
 
     match unsafe { sys::notify_check(token, &mut check as _) } {
         0 => Ok(check == 1),
-        code @ _ => Err(NotifyError::from_u32(code)),
+        code => Err(NotifyError::from_u32(code)),
     }
 }
 
