@@ -1,3 +1,6 @@
 fn main() {
-    println!("{:?}", darwin_notify::notify_post("tech.dafunk.net"));
+    println!(
+        "{:?}",
+        darwin_notify::notify_post("tech.subcom.darwin-notify")
+    );
 }
